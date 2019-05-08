@@ -140,3 +140,151 @@ Humanoid.prototype.greet = function () {
   // * Create Villain and Hero constructor functions that inherit from the Humanoid constructor function.  
   // * Give the Hero and Villains different methods that could be used to remove health points from objects which could result in destruction if health gets to 0 or drops below 0;
   // * Create two new objects, one a villain and one a hero and fight it out with methods!
+
+  //a method to be used by  both hero and villian. It will set their health after being attacked by their opponent.
+  Humanoid.prototype.setHealth = function (newHealthPoints) {
+      this.healthPoints -= newHealthPoints;
+      
+      if(this.healthPoints>0) {
+            console.log(`${this.name} is still in the fight with ${this.healthPoints} hP.\n\n`)
+      } else{
+            console.log(`\n\n **OH WOW! What an attack! ${this.name} has died.** \n\n`);
+      }
+  }
+
+  //Villian constructor
+    function Villian (villianAttributes) {
+        Humanoid.call(this, villianAttributes);
+        this.teammate = villianAttributes.teammate;
+        this.opponent = villianAttributes.opponent;
+    }
+
+    //Villian prototypes. I have similar battle and attack prototypes for the Hero, but have them separate so the text output could be different. 
+    Villian.prototype = Object.create(Humanoid.prototype);
+    Villian.prototype.battle = function (opponent) {
+        this.opponent = opponent.name;
+        return `${this.name} is going to try to kill ${opponent.name}`;
+    }
+
+    Villian.prototype.attack = function(){
+        const damage = Math.ceil(Math.random()*10); //determines damage of attack, will be less than hero attacks
+        const hit = Math.random(); //determines if attack hits
+        const temp = Math.random(); //will be used to determine which weapon is used, see if loop below to choose between weapon options
+        let attackChoice = '';
+        if(temp<0.33){
+            attackChoice = this.weapons[0];
+        } else if (temp>=0.33 && temp <0.67){
+            attackChoice = this.weapons[1];
+        } else {
+            attackChoice=this.weapons[2]
+        }
+
+        console.log(`${this.name} attacks with ${attackChoice}!`);
+
+        if(hit<0.7){ //probability of villian hitting is lower than hero
+            console.log((`${attackChoice} hit! It did ${damage} damage points to ${this.opponent}.`));
+            return damage;
+        } else {
+            console.log(`${this.opponent} was too fast! ${attackChoice} missed!`);
+            return 0;
+        }
+    }
+
+    
+
+    function Hero (heroAttributes) {
+        Humanoid.call(this, heroAttributes);
+        this.teammate = heroAttributes.teammate;
+        this.winningCheer = heroAttributes.winningCheer;
+        this.opponent = heroAttributes.opponent;
+    }
+
+    Hero.prototype = Object.create(Humanoid.prototype);
+    Hero.prototype.battle = function (opponent) {
+        this.opponent = opponent.name;
+        return `${this.name} has entered a battle with ${opponent.name}`;
+    }
+
+    Hero.prototype.attack = function(){
+        const damage = Math.ceil(Math.random()*15);
+        const hit = Math.random();
+        const temp = Math.random();
+        let attackChoice = '';
+        if(temp<0.33){
+            attackChoice = this.weapons[0];
+        } else if (temp>=0.33 && temp <0.67){
+            attackChoice = this.weapons[1];
+        } else {
+            attackChoice=this.weapons[2]
+        }
+
+        console.log(`${this.name} attacks with ${attackChoice}!`);
+
+        if(hit<0.85){
+            console.log(`${attackChoice} hit! It did ${damage} damage points to ${this.opponent}`);
+            return damage;
+        } else {
+            console.log(`${this.opponent} got lucky! ${attackChoice} missed!`);
+            return 0;
+        }
+    }
+
+    
+
+    const boss = new Villian ({
+        createdAt: new Date(),
+        dimensions: {
+            length: 6,
+            width: 10, //yes, he is fat
+            height: 6,
+        },
+        healthPoints: 65,
+        name: 'Bowser',
+        team: 'Team Evil',
+        weapons: [
+        'Fire Breath',
+        'Spinning Shell',
+        'Roar',
+        ],
+        language: 'Turtle',
+        teammate: [
+            'Baby Bowser',
+            'Wario'
+        ]
+    });
+
+    const goodGuy = new Hero ({
+        createdAt: new Date(),
+        dimensions: {
+            length: 2,
+            width: 3, 
+            height: 4,
+        },
+        healthPoints: 55, //less health than villian
+        name: 'Mario',
+        team: 'Team Good',
+        weapons: [
+        'Fire Ball',
+        'Coin Jump',
+        'Magic Carpet',
+        ],
+        language: 'Italian',
+        teammate: [
+            'Luigi',
+            'Toad'
+        ],
+        winningCheer: 'Yippee'
+    });
+
+    //The nuisances of the battle
+    console.log(goodGuy.battle(boss));
+    console.log(boss.battle(goodGuy));
+    console.log(goodGuy.greet());
+    console.log(boss.greet());
+    console.log(`\n\n*******BATTLE BEGINS*******`);
+    
+    //The battle. It will go back and forth until someone dies. 
+    do{
+        goodGuy.setHealth(boss.attack());
+        boss.setHealth(goodGuy.attack());
+    }while((goodGuy.healthPoints>0 && boss.healthPoints>0));
