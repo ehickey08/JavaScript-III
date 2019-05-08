@@ -141,7 +141,7 @@ Humanoid.prototype.greet = function () {
   // * Give the Hero and Villains different methods that could be used to remove health points from objects which could result in destruction if health gets to 0 or drops below 0;
   // * Create two new objects, one a villain and one a hero and fight it out with methods!
 
-  //a method to be used by  both hero and villian. It will set their health after being attacked by their opponent.
+  //these two methods will allow the humanoids (hero and villina) to attack and set their healths
   Humanoid.prototype.setHealth = function (newHealthPoints) {
       this.healthPoints -= newHealthPoints;
       
@@ -152,85 +152,60 @@ Humanoid.prototype.greet = function () {
       }
   }
 
-  //Villian constructor
+  Humanoid.prototype.attack = function(){
+      const damage = Math.ceil(Math.random()*this.maxDamage); //determines damage of attack
+      const hit = Math.random(); //determines if attack hits
+      const temp = Math.random(); //will be used to determine which weapon is used, see if loop below to choose between weapon options
+      let attackChoice = '';
+      if(temp<0.33){
+          attackChoice = this.weapons[0];
+      } else if (temp>=0.33 && temp <0.67){
+          attackChoice = this.weapons[1];
+      } else {
+          attackChoice=this.weapons[2]
+      }
+
+      console.log(`${this.name} attacks with ${attackChoice}!`);
+
+      if(hit<this.hitChance){ //probability of villian hitting is lower than hero
+          console.log((`${attackChoice} hit! It did ${damage} damage points to ${this.opponent}.`));
+          return damage;
+      } else {
+          console.log(`${this.opponent} was too fast! ${attackChoice} missed!`);
+          return 0;
+      }
+  }
+
+  //Villian constructor. I just pass this on to the Hero since they would be similar opponents
     function Villian (villianAttributes) {
         Humanoid.call(this, villianAttributes);
         this.teammate = villianAttributes.teammate;
         this.opponent = villianAttributes.opponent;
+        this.maxDamage = villianAttributes.maxDamage;
+        this.hitChance = villianAttributes.hitChance;
     }
 
-    //Villian prototypes. I have similar battle and attack prototypes for the Hero, but have them separate so the text output could be different. 
+    //Villian prototypes. 
     Villian.prototype = Object.create(Humanoid.prototype);
     Villian.prototype.battle = function (opponent) {
         this.opponent = opponent.name;
-        return `${this.name} is going to try to kill ${opponent.name}`;
+        return `${this.name} is going to try to kill ${opponent.name}.`;
     }
 
-    Villian.prototype.attack = function(){
-        const damage = Math.ceil(Math.random()*10); //determines damage of attack, will be less than hero attacks
-        const hit = Math.random(); //determines if attack hits
-        const temp = Math.random(); //will be used to determine which weapon is used, see if loop below to choose between weapon options
-        let attackChoice = '';
-        if(temp<0.33){
-            attackChoice = this.weapons[0];
-        } else if (temp>=0.33 && temp <0.67){
-            attackChoice = this.weapons[1];
-        } else {
-            attackChoice=this.weapons[2]
-        }
-
-        console.log(`${this.name} attacks with ${attackChoice}!`);
-
-        if(hit<0.7){ //probability of villian hitting is lower than hero
-            console.log((`${attackChoice} hit! It did ${damage} damage points to ${this.opponent}.`));
-            return damage;
-        } else {
-            console.log(`${this.opponent} was too fast! ${attackChoice} missed!`);
-            return 0;
-        }
-    }
-
-    
-
+    //Hero constructor. Just inherit from Villian and add a winningCheer
     function Hero (heroAttributes) {
-        Humanoid.call(this, heroAttributes);
-        this.teammate = heroAttributes.teammate;
-        this.winningCheer = heroAttributes.winningCheer;
-        this.opponent = heroAttributes.opponent;
+        Villian.call(this, heroAttributes);        
+        this.winningCheer = heroAttributes.winningCheer;      
     }
 
-    Hero.prototype = Object.create(Humanoid.prototype);
+    Hero.prototype = Object.create(Villian.prototype);
+    //wanted the wording different for the battle entrance
     Hero.prototype.battle = function (opponent) {
         this.opponent = opponent.name;
-        return `${this.name} has entered a battle with ${opponent.name}`;
+        return `${this.name} is going to try to put an end to the evil ${opponent.name}.`;
     }
 
-    Hero.prototype.attack = function(){
-        const damage = Math.ceil(Math.random()*15);
-        const hit = Math.random();
-        const temp = Math.random();
-        let attackChoice = '';
-        if(temp<0.33){
-            attackChoice = this.weapons[0];
-        } else if (temp>=0.33 && temp <0.67){
-            attackChoice = this.weapons[1];
-        } else {
-            attackChoice=this.weapons[2]
-        }
-
-        console.log(`${this.name} attacks with ${attackChoice}!`);
-
-        if(hit<0.85){
-            console.log(`${attackChoice} hit! It did ${damage} damage points to ${this.opponent}`);
-            return damage;
-        } else {
-            console.log(`${this.opponent} got lucky! ${attackChoice} missed!`);
-            return 0;
-        }
-    }
-
-    
-
+    //create our Villian, called boss
     const boss = new Villian ({
         createdAt: new Date(),
         dimensions: {
@@ -250,9 +225,12 @@ Humanoid.prototype.greet = function () {
         teammate: [
             'Baby Bowser',
             'Wario'
-        ]
+        ],
+        maxDamage: 10,
+        hitChance: 0.7
     });
 
+    //create our Hero, called goodGuy
     const goodGuy = new Hero ({
         createdAt: new Date(),
         dimensions: {
@@ -273,10 +251,13 @@ Humanoid.prototype.greet = function () {
             'Luigi',
             'Toad'
         ],
-        winningCheer: 'Yippee'
+        winningCheer: 'Yippee',
+        maxDamage: 15,
+        hitChance: 0.85,
     });
 
     //The nuisances of the battle
+    console.log(`\n\n*******ENEMIES MEET*******`);
     console.log(goodGuy.battle(boss));
     console.log(boss.battle(goodGuy));
     console.log(goodGuy.greet());
@@ -288,3 +269,5 @@ Humanoid.prototype.greet = function () {
         goodGuy.setHealth(boss.attack());
         boss.setHealth(goodGuy.attack());
     }while((goodGuy.healthPoints>0 && boss.healthPoints>0));
+
+    console.log(`${goodGuy.name} celebrates with a ${goodGuy.winningCheer}!!!!`); //This will be awkward if Mario dies.
